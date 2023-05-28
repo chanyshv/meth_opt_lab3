@@ -49,7 +49,7 @@ def dichotomy(f, a, b, l):
     return func_calls, (a + b) / 2
 
 
-def wolfe_conditions(f: ty.Callable, df: ty.Callable, x, d, c1=0.01, c2=0.9, tol=1e-4):
+def wolfe_conditions(f: ty.Callable, df: ty.Callable, x, d, c1=0.01, c2=0.99, tol=1e-4):
     f_x = f(x)
     grad_f_x = df(f, x)
     t = 1.0
@@ -65,7 +65,6 @@ def wolfe_conditions(f: ty.Callable, df: ty.Callable, x, d, c1=0.01, c2=0.9, tol
         df_calls += 1
 
     return t, f_calls, df_calls
-
 
 def constant_lr_decay(lr):
     def f(*_, **__):

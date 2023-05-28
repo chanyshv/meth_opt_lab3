@@ -4,14 +4,15 @@ import typing as ty
 import descent
 from descent import wolfe_conditions, dichotomy
 
-from funcs import f_bukin, f_matias
-
+from funcs import f_bukin, f_matias, f_rosenbrock
+from torchmin.bfgs import _minimize_bfgs as pt_bfgs
+import torch
 
 def rho_calc(y, s):
     return 1 / np.dot(y.T, s)
 
 
-def bfgs(f: ty.Callable, df: ty.Callable, x_0, epochs, tol=1e-6, ls_tol=1e-6):
+def bfgs(f: ty.Callable, df: ty.Callable, x_0, epochs, tol=1e-5, ls_tol=1e-5):
     i = 0
     E = np.eye(len(x_0))
 
@@ -21,24 +22,26 @@ def bfgs(f: ty.Callable, df: ty.Callable, x_0, epochs, tol=1e-6, ls_tol=1e-6):
     df_x_i = df(f, x_0)  # derivative at x_i
 
     while i < epochs and np.linalg.norm(df_x_i) > tol:
-        p_i = -np.dot(H_i, df_x_i)
-        t, f_calls, df_calls = wolfe_conditions(f, df, x_i, p_i, tol=ls_tol)
+        p_i = -H_i @ df_x_i
+        t, f_calls, df_calls = wolfe_conditions(f, df, x_i, p_i, ls_tol)
 
         s = t * p_i
         x_i1 = x_i + s
-        y = (df(f, x_i1) - df(f, x_i)).T
+        s = np.reshape(np.array([s]), (len(x_0), 1))
+        y = np.reshape(np.array([df(f, x_i1) - df(f, x_i)]), (len(x_0), 1))
 
-        rho = rho_calc(y, s)
-        m1 = E - rho * np.dot(s, y.T)
-        m2 = E - rho * np.dot(s.T, y)
+        rho = 1 / (y.T @ s)
+        m1 = E - rho * (s @ y.T)
+        m2 = E - rho * (y @ s.T)
 
-        H_i = np.dot(m1, np.dot(H_i, m2)) + rho * np.dot(s, s.T)
-        x_i = x_i1
+        H_i = m1 @ H_i @ m2 + rho * (s @ s.T)
+        x_i = x_i1[:]
         points.append(x_i)
         df_x_i = df(f, x_i)
 
         i += 1
 
+    print(len(points))
     return points
 
 
@@ -108,9 +111,3 @@ def l_bfgs(f: ty.Callable, df: ty.Callable, x_0, epochs, m=5, tol=1e-9, ls_tol=1
         i += 1
 
     return points
-
-
-def f(x):
-    return 100 * x[0] ** 2 + 200 * x[1] ** 2
-
-print(l_bfgs(f_matias, descent.numeric_gradient, x_0 = np.array((9.5, 0.8)), epochs=1000, tol=1e-6, m=10))
