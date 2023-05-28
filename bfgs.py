@@ -1,12 +1,9 @@
-import numpy as np
 import typing as ty
 
-import descent
-from descent import wolfe_conditions, dichotomy
+import numpy as np
 
-from funcs import f_bukin, f_matias, f_rosenbrock
-from torchmin.bfgs import _minimize_bfgs as pt_bfgs
-import torch
+from descent import wolfe_conditions
+
 
 def rho_calc(y, s):
     return 1 / np.dot(y.T, s)
@@ -50,8 +47,8 @@ def l_bfgs(f: ty.Callable, df: ty.Callable, x_0, epochs, m=5, tol=1e-9, ls_tol=1
     points = [x_0]
     x_i = x_0  # point
     df_x_i = df(f, x_0)  # derivative at x_i
-    p=-df_x_i
-    t, _, _ = wolfe_conditions(f, df, x_0, p, tol = ls_tol)
+    p = -df_x_i
+    t, _, _ = wolfe_conditions(f, df, x_0, p, tol=ls_tol)
 
     ys = []
     ss = []
@@ -66,7 +63,9 @@ def l_bfgs(f: ty.Callable, df: ty.Callable, x_0, epochs, m=5, tol=1e-9, ls_tol=1
     x_i = x_i1
 
     def alpha_calc(j, q):
-        return rho_calc(ys[len(ss) - 1 - j], ss[len(ss) - 1 - j]) * np.dot(ss[len(ss) - 1 - j].T, q)
+        return rho_calc(ys[len(ss) - 1 - j], ss[len(ss) - 1 - j]) * np.dot(
+            ss[len(ss) - 1 - j].T, q
+        )
 
     def calcualte_p():
         q = df(f, x_i)

@@ -191,7 +191,7 @@ def linear_demo_2args(points, f, X, Y, xname="Время подготовки, �
     )
 
 
-def linear_multiple_demo_2args(all_points: dict, f, X, Y):
+def linear_multiple_demo_2args(all_points: dict, f, X, Y, area=def_visualization_area):
     print("Всего точек:", len(list(all_points.values())[0]))
     print("Минимум в ", list(all_points.values())[0][-1])
     print("Значение функции в точке минимума: ", f(list(all_points.values())[0][-1]))
@@ -202,7 +202,7 @@ def linear_multiple_demo_2args(all_points: dict, f, X, Y):
         step *= 10
         pts_size //= 10
 
-    visualize_multiple_descent_2args(all_points, f)
+    visualize_multiple_descent_2args(all_points, f, area)
 
     weights = {}
     for i in all_points:
